@@ -11,13 +11,22 @@ def Bisection(file, inp):
     '''
     if re.search("-maxIter", inp[1]):
         max_iter = inp[2]
+        init_p = inp[3]
+        init_p2 = inp[4]
     else:
+        init_p = inp[2]
+        init_p2 = inp[3]
         max_iter = 10000
 
     print("Max number of iterations is: {}".format(max_iter))
+    '''In Bisection, we have 2 initial points, a and b. init_p and init_p2 hold the starting values in the input string that 
+        the user sends in. They are our starting values which we will find a zero between. 
+        We will plug these into our function, so we can find the difference between f(a) and f(b)'''
 
-    '''Next, we need to get the starting values to find a zero between. In Bisection, we have 2 initial points, 
-       a and b. We will plug these into our function, so we can find the difference between f(a) and f(b)'''
+    print("a = {} and b = {}".format(init_p,init_p2))
+
+    '''Next, we need to parse our file contents properly. This means recognizing the coefficients in the file and 
+      setting the exponents to decrease from a maximum value of 3. '''
 
 
 def Newton(file, inp):
