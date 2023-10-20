@@ -14,8 +14,8 @@ def file_parser(file, raw_inp):
     line = [x.replace("  ", " ").split(r" ") for x in file]
     value_list = list(itertools.chain.from_iterable(line))
 
-    n = value_list[0]  # first value in the list is the higest degree for our polynomial
-    const = value_list[-1]  # constant term is always the last value of our list
+    n = float(value_list[0])  # first value in the list is the higest degree for our polynomial
+    const = float(value_list[-1])  # constant term is always the last value of our list
     max_iter = 10000 #default max iteration value if none specified
     epsilon = 2e-23 #error tolerance
 
@@ -23,25 +23,25 @@ def file_parser(file, raw_inp):
     if re.search("-newt", raw_inp[1]):
         if re.search("-maxIter", raw_inp[2]):
             '''If we specify max iterations, our init_p @ index 4'''
-            max_iter = raw_inp[3]
-            init_p = raw_inp[4]  # a
+            max_iter = float(raw_inp[3])
+            init_p = float(raw_inp[4])  # a
             newton(value_list, raw_inp, n, const, init_p, max_iter,epsilon)
         else:
             '''No "-maxIter" :keyword or :param max_iter? ==> init_p @ index 2'''
-            init_p = raw_inp[2]
+            init_p = float(raw_inp[2])
             newton(value_list, raw_inp, n, const, init_p, max_iter,epsilon)
 
     elif re.search("-sec", raw_inp[1]):
         if re.search("-maxIter", raw_inp[2]):
             '''If we specify max iterations, our initial zeros a and b are at values 4 and 5 of our list respectively'''
-            max_iter = raw_inp[3]
-            init_p = raw_inp[4]  # a
-            init_p2 = raw_inp[5]  # b
+            max_iter = float(raw_inp[3])
+            init_p = float(raw_inp[4])  # a
+            init_p2 = float(raw_inp[5])  # b
             secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter)
         else:
             '''No "-maxIter" :keyword or :param max_iter? ==> init_p & init_p2 located at index 3 and index 4 respectively'''
-            init_p = raw_inp[2]
-            init_p2 = raw_inp[3]
+            init_p = float(raw_inp[2])
+            init_p2 = float(raw_inp[3])
             secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter)
 
     elif re.search("-hybrid", raw_inp[1]):
@@ -68,37 +68,96 @@ def file_parser(file, raw_inp):
     "polRoot [-newt, -sec, -hybrid] [-maxIt n] initP [initP2] polyFileName"
     our maximum number of iterations will be set to whatever follows the -maxIter keyword, otherwise default val is 10k
     '''
-def fa(init_p):
-    '''TODO: implement logic here'''
+def fa(value_list, n, init_p):
+    f_init_p = 0
+    '''
+    
+    counter = 0
+    for i in range(1:-1)
+        init_p = value_list[i]*init_p^(n-counter)
+        counter+=1
 
-    return 0
+
+    '''
+    count = 0 #keep accurate count of how many variables we are iterating through in the polynomial term list
+    for i in range(1, len(value_list)):
+        f_init_p += float(value_list[i])*(math.pow(float(init_p),float(n)-float(count)))
+        print("Count during loop is {}".format(count))
+        count += 1
+
+    return f_init_p
 
 
-def fb(init_p2):
-    '''TODO: implement logic here'''
-    return 0
+def fb(value_list, n, init_p2):
+    f_init_p2 = 0
+    '''
+    counter = 0
+    for i in range(1:-1)
+        init_p = value_list[i]*init_p^(n-counter)
+        counter+=1
+
+
+    '''
+    count = 0  # keep accurate count of how many variables we are iterating through in the polynomial term list
+    for i in range(1, len(value_list)):
+        f_init_p2 += float(value_list[i]) * (math.pow(float(init_p2), float(n) - float(count)))
+        print("Count during loop is {}".format(count))
+        count += 1
+
+    return f_init_p2
+def fc(value_list, n, c):
+    f_of_c = 0
+    '''
+    counter = 0
+    for i in range(1:-1)
+        :param c = value_list[i]*init_p^(n-counter)
+        counter+=1
+
+
+    '''
+    count = 0  # keep accurate count of how many variables we are iterating through in the polynomial term list
+    for i in range(1, len(value_list)):
+        f_of_c += float(value_list[i]) * (math.pow(float(c), float(n) - float(count)))
+        print("Count during loop is {}".format(count))
+        count += 1
+    return f_of_c
+
 def bisection(value_list, inp, n, const, init_p, init_p2, max_iter, epsilon):
-    f_init_p = fa(init_p)
-    f_init_p2 = fb(init_p2)
-    '''for i in range(len( we will add terms of the polynomial to one another. So from 1:-1, we would add
-    coeff[i]*init_p^(n-(i-1)) + coeff[i+1]*init_p^(n-(i-1)) + coeff[i+2]*init_p^(n-(i-1)) + '''
+    init_p = float(init_p)
+    init_p2 = float(init_p2)
+    f_init_p = fa(value_list, n, init_p)
+    f_init_p2 = fb(value_list, n, init_p2)
+    c = 0
     '''In Bisection, we have 2 initial points, a and b. init_p and init_p2 hold the starting values in the input string that 
         the user sends in. They are our starting values which we will find a zero between. 
         We will plug these into our function, so we can find the difference between f(a) and f(b)'''
 
-    print("Max iterations = {}, a = {} and b = {}".format(max_iter, init_p, init_p2))
+    if f_init_p * f_init_p2 >= 0:
+        print("Inadequate values for a and b.")
+        exit(0)
 
-    '''Next, we need to parse the values of the list properly. 
-    value_list format:n, a(n) a(n-1) a(n-2) ... a(2) a(1) const 
-    This means that the first value in the value_list is:
-     n- degree of the polynomial
-     a(i) - coefficient of the monomial of the degree i
-     const- constant term'''
+    error = math.fabs(float(init_p2)-float(init_p)) #|b-a|
 
-    print("Printing lines from the file in bisection method: ", value_list)
+    for it in range(1, int(max_iter)):
+        error /= 2
+        c = init_p + error #a + error
+        f_c = fc(value_list, n, c) #assigned value of f_of_c
 
-    print("f(init_p) = {}".format(f_init_p))
-    print("f(init_p2) = {}".format(f_init_p2))
+        if math.fabs(error) < epsilon or f_c == 0:
+            print("Algorithm has converged after {} iterations!".format(it))
+            return c
+
+        if f_init_p * f_c < 0:
+            init_p2 = c # b = c if f(a) * f(c) < 0
+            f_init_p2 = f_c # f(b) = f(c)
+        else:
+            init_p = c
+            f_init_p = f_c # f(a) = f(c)
+    print("Maximum iterations reached without convergence...")
+    return c
+
+    # print("f(init_p) = {}".format(f_init_p))
+    # print("f(init_p2) = {}".format(f_init_p2))
 def newton(value_list, raw_inp, n, const, init_p, max_iter, epsilon):
     '''TODO: implement logic
     :param raw_inp
