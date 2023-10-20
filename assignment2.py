@@ -68,11 +68,18 @@ def file_parser(file, raw_inp):
     "polRoot [-newt, -sec, -hybrid] [-maxIt n] initP [initP2] polyFileName"
     our maximum number of iterations will be set to whatever follows the -maxIter keyword, otherwise default val is 10k
     '''
+def fa(init_p):
+    '''TODO: implement logic here'''
+
+    return 0
 
 
+def fb(init_p2):
+    '''TODO: implement logic here'''
+    return 0
 def bisection(value_list, inp, n, const, init_p, init_p2, max_iter, epsilon):
-    fa = init_p
-    fb = "none"
+    f_init_p = fa(init_p)
+    f_init_p2 = fb(init_p2)
     '''for i in range(len( we will add terms of the polynomial to one another. So from 1:-1, we would add
     coeff[i]*init_p^(n-(i-1)) + coeff[i+1]*init_p^(n-(i-1)) + coeff[i+2]*init_p^(n-(i-1)) + '''
     '''In Bisection, we have 2 initial points, a and b. init_p and init_p2 hold the starting values in the input string that 
@@ -90,7 +97,8 @@ def bisection(value_list, inp, n, const, init_p, init_p2, max_iter, epsilon):
 
     print("Printing lines from the file in bisection method: ", value_list)
 
-
+    print("f(init_p) = {}".format(f_init_p))
+    print("f(init_p2) = {}".format(f_init_p2))
 def newton(value_list, raw_inp, n, const, init_p, max_iter, epsilon):
     '''TODO: implement logic
     :param raw_inp
