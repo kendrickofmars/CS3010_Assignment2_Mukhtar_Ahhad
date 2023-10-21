@@ -25,11 +25,11 @@ def file_parser(file, raw_inp):
             '''If we specify max iterations, our init_p @ index 4'''
             max_iter = int(raw_inp[3])
             x = float(raw_inp[4])  # a
-            newton(value_list, raw_inp, n, const, x, max_iter, epsilon, delta)
+            newton(value_list, n, x, max_iter, epsilon, delta)
         else:
             '''No "-maxIter" :keyword or :param max_iter? ==> init_p @ index 2'''
             x = float(raw_inp[2])
-            newton(value_list, raw_inp, n, const, x, max_iter,epsilon, delta)
+            newton(value_list, n, x, max_iter,epsilon, delta)
 
     elif re.search("-sec", raw_inp[1]):
         if re.search("-maxIter", raw_inp[2]):
@@ -75,6 +75,17 @@ def file_parser(file, raw_inp):
             bisection(value_list, n, init_p, init_p2, max_iter, epsilon)
     # print("Printing lines from the file", value_list)
     return value_list
+
+
+def solutionWriter(outcome_text):
+    solution_file_path = "C://AlgSolutions//sol.txt"
+    try:
+        os.mkdir(os.path.dirname(solution_file_path))
+
+    except FileExistsError as err:
+        print(err)
+    with open(solution_file_path, "w") as f_write:
+        f_write.write(outcome_text)
 
 
 '''Input is organized in the following manner:
@@ -186,6 +197,7 @@ def bisection(value_list, n, init_p, init_p2, max_iter, epsilon):
 
         if math.fabs(error) < epsilon or f_c == 0:
             print("Algorithm has converged after {} iterations!".format(it))
+            solutionWriter("root = {}, no. iterations: {}, outcome: Convergence".format(c, it))
             return c
 
         if f_init_p * f_c < 0:
@@ -195,6 +207,7 @@ def bisection(value_list, n, init_p, init_p2, max_iter, epsilon):
             init_p = c
             f_init_p = f_c # f(a) = f(c)
     print("Maximum iterations reached without convergence...")
+    solutionWriter("Bisection method. root = {}, no. iterations: {}, outcome: No convergence reached".format("N/A", max_iter))
     return c
 
     # print("f(init_p) = {}".format(f_init_p))
@@ -211,7 +224,6 @@ def bisection(value_list, n, init_p, init_p2, max_iter, epsilon):
 
 
 def newton(value_list, n,  x, max_iter, epsilon, delta):
-    '''TODO: figure out the exact value of delta, otherwise we will get inaccurate convergence results'''
     f_of_x = fx(value_list, n, x)
     fDer = 0
     print("Max iterations = {}, a = {}, f(x) = {}".format(max_iter, x, f_of_x))
@@ -221,16 +233,18 @@ def newton(value_list, n,  x, max_iter, epsilon, delta):
         if math.fabs(fDer) < delta:
             print("Small slope!")
             return x
-        d = f_of_x / fDer
+        d = f_of_x / fDer #
         x -= d
         f_of_x = fx(value_list, n, x)
 
         if math.fabs(d) < epsilon:
             print("Algorithm has converged after {} iterations!".format(it))
+            # solutionWriter("Newton's method. root = {}, no. iterations: {}, outcome: Convergence".format(x, it))
             return x
 
     print("Value of f'(x) = {}".format(fDer))
     print("Maximum iterations reached without convergence...")
+    # solutionWriter("Newton's method. root = {}, no. iterations: {}, outcome: Convergence not reached".format("N/A", max_iter))
     return x
 
 
@@ -268,11 +282,13 @@ def secant(value_list, n, init_p, init_p2, max_iter, epsilon):
 
         if math.fabs(d) < epsilon:
             print("Algorithm has converged after {} iterations!".format(it))
+            solutionWriter("Secant method. root = {}, no. iterations: {}, outcome: Convergence".format(init_p, it))
             return init_p
 
         init_p -= d
         f_a = fa(value_list, n, init_p)
     print("Maximum number of iterations reached!")
+    solutionWriter("Secant method. root = {}, no. iterations: {}, outcome: Convergence not reached".format("N/A", it))
     return init_p
 
 
