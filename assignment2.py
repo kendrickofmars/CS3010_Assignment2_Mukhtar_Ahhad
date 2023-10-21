@@ -37,16 +37,29 @@ def file_parser(file, raw_inp):
             max_iter = int(raw_inp[3])
             init_p = float(raw_inp[4])  # a
             init_p2 = float(raw_inp[5])  # b
-            secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon)
+            secant(value_list, n, init_p, init_p2, max_iter, epsilon)
         else:
             '''No "-maxIter" :keyword or :param max_iter? ==> init_p & init_p2 located at index 3 and index 4 respectively'''
             init_p = float(raw_inp[2])
             init_p2 = float(raw_inp[3])
-            secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon)
+            secant(value_list, n, init_p, init_p2, max_iter, epsilon)
 
     elif re.search("-hybrid", raw_inp[1]):
-        #hybrid starts with bisection for earlier iterations and then switches to Newton's method
-        hybrid(value_list, raw_inp)
+        '''hybrid starts with bisection for 1st 8 iterations and then switches to Newton's method. 
+            We set our initial value in Newton's method to whatever is returned after completing our first 8 iterations 
+            in bisection.'''
+        if re.search("-maxIter", raw_inp[2]):
+            '''If we specify max iterations, our initial zeros a and b are at values 4 and 5 of our list respectively'''
+            max_iter = int(raw_inp[3])
+            init_p = float(raw_inp[4])  # a
+            init_p2 = float(raw_inp[5])  # b
+            hybrid(value_list, n, init_p, init_p2, max_iter, epsilon)
+        else:
+            '''No "-maxIter" :keyword or :param max_iter? ==> init_p & init_p2 located at index 3 and index 4 respectively'''
+            init_p = float(raw_inp[2])
+            init_p2 = float(raw_inp[3])
+            hybrid(value_list, n, init_p, init_p2, max_iter, epsilon)
+
 
     else:
         if re.search("-maxIter", raw_inp[1]):
@@ -54,12 +67,12 @@ def file_parser(file, raw_inp):
             max_iter = int(raw_inp[2])
             init_p = float(raw_inp[3])  # a
             init_p2 = float(raw_inp[4])  # b
-            bisection(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon)
+            bisection(value_list, n, init_p, init_p2, max_iter, epsilon)
         else:
             '''No "-maxIter" :keyword or :param max_iter? ==> init_p & init_p2 located at index 1 and index 2 respectively'''
             init_p = float(raw_inp[1])
             init_p2 = float(raw_inp[2])
-            bisection(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon)
+            bisection(value_list, n, init_p, init_p2, max_iter, epsilon)
     # print("Printing lines from the file", value_list)
     return value_list
 
@@ -149,7 +162,7 @@ def derF(value_list, n, x):
     return derX
 
 
-def bisection(value_list, inp, n, const, init_p, init_p2, max_iter, epsilon):
+def bisection(value_list, n, init_p, init_p2, max_iter, epsilon):
     init_p = float(init_p)
     init_p2 = float(init_p2)
     f_init_p = fa(value_list, n, init_p)
@@ -197,7 +210,7 @@ def bisection(value_list, inp, n, const, init_p, init_p2, max_iter, epsilon):
     :param epsilon'''
 
 
-def newton(value_list, raw_inp, n, const, x, max_iter, epsilon, delta):
+def newton(value_list, n,  x, max_iter, epsilon, delta):
     '''TODO: figure out the exact value of delta, otherwise we will get inaccurate convergence results'''
     f_of_x = fx(value_list, n, x)
     fDer = 0
@@ -222,7 +235,7 @@ def newton(value_list, raw_inp, n, const, x, max_iter, epsilon, delta):
 
 
 
-def secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon):
+def secant(value_list, n, init_p, init_p2, max_iter, epsilon):
     '''
     :param raw_inp
     :param value_list '
@@ -263,7 +276,7 @@ def secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon):
     return init_p
 
 
-'''
+''' 
     :param inp:
     :param value_list - correctly formatted list
 Hybrid method will run Bisection for 8 iterations and then we will switch to Newton's method until we reach convergence.
@@ -272,18 +285,18 @@ for i in range(9): # ranges are endpoint exclusive
     Bisection(some initial values)
     if i = 8:
         max_iter -=8
-        Newton(some values)
+        Newton(value that Bisection produces after running and not converging after 8 iterations)
         break
-        
-    
-    
 '''
 
 
-def hybrid(value_list, inp):
+def hybrid(value_list, n, init_p, init_p2, max_iter, epsilon):
+    a = 0  #initial value that will be updated to whatever bisection returns, this will be our new initial value when calling Newton's method
+    for i in range(7):
+        a = bisection(value_list, n, init_p, init_p2, max_iter, epsilon)
 
-    print("hybrid")
-
+    newton(value_list, n,  a, max_iter-8, epsilon=2e-23, delta=0)  #at the 8th iteration, we switch to Newton, max_iter is decreased by 8 so we do the remaining iterations still
+    return a
 
 def main():
     '''taking in user input, splitting it, and picking out necessary info'''
