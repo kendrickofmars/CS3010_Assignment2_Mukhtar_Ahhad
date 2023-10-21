@@ -23,7 +23,7 @@ def file_parser(file, raw_inp):
     if re.search("-newt", raw_inp[1]):
         if re.search("-maxIter", raw_inp[2]):
             '''If we specify max iterations, our init_p @ index 4'''
-            max_iter = float(raw_inp[3])
+            max_iter = int(raw_inp[3])
             x = float(raw_inp[4])  # a
             newton(value_list, raw_inp, n, const, x, max_iter, epsilon, delta)
         else:
@@ -34,15 +34,15 @@ def file_parser(file, raw_inp):
     elif re.search("-sec", raw_inp[1]):
         if re.search("-maxIter", raw_inp[2]):
             '''If we specify max iterations, our initial zeros a and b are at values 4 and 5 of our list respectively'''
-            max_iter = float(raw_inp[3])
+            max_iter = int(raw_inp[3])
             init_p = float(raw_inp[4])  # a
             init_p2 = float(raw_inp[5])  # b
-            secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter)
+            secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon)
         else:
             '''No "-maxIter" :keyword or :param max_iter? ==> init_p & init_p2 located at index 3 and index 4 respectively'''
             init_p = float(raw_inp[2])
             init_p2 = float(raw_inp[3])
-            secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter)
+            secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon)
 
     elif re.search("-hybrid", raw_inp[1]):
         #hybrid starts with bisection for earlier iterations and then switches to Newton's method
@@ -51,14 +51,14 @@ def file_parser(file, raw_inp):
     else:
         if re.search("-maxIter", raw_inp[1]):
             '''If we specify max iterations, our initial zeros a and b are at values 2 and 3 of our list respectively'''
-            max_iter = raw_inp[2]
-            init_p = raw_inp[3]  # a
-            init_p2 = raw_inp[4]  # b
+            max_iter = int(raw_inp[2])
+            init_p = float(raw_inp[3])  # a
+            init_p2 = float(raw_inp[4])  # b
             bisection(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon)
         else:
             '''No "-maxIter" :keyword or :param max_iter? ==> init_p & init_p2 located at index 1 and index 2 respectively'''
-            init_p = raw_inp[1]
-            init_p2 = raw_inp[2]
+            init_p = float(raw_inp[1])
+            init_p2 = float(raw_inp[2])
             bisection(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon)
     # print("Printing lines from the file", value_list)
     return value_list
@@ -82,7 +82,6 @@ def fa(value_list, n, init_p):
     count = 0 #keep accurate count of how many variables we are iterating through in the polynomial term list
     for i in range(1, len(value_list)):
         f_init_p += float(value_list[i])*(math.pow(float(init_p),float(n)-float(count)))
-        print("Count during loop is {}".format(count))
         count += 1
 
     return f_init_p
@@ -101,7 +100,6 @@ def fb(value_list, n, init_p2):
     count = 0  # keep accurate count of how many variables we are iterating through in the polynomial term list
     for i in range(1, len(value_list)):
         f_init_p2 += float(value_list[i]) * (math.pow(float(init_p2), float(n) - float(count)))
-        print("Count during loop is {}".format(count))
         count += 1
 
     return f_init_p2
@@ -120,7 +118,6 @@ def fc(value_list, n, c):
     count = 0  # keep accurate count of how many variables we are iterating through in the polynomial term list
     for i in range(1, len(value_list)):
         f_of_c += float(value_list[i]) * (math.pow(float(c), float(n) - float(count)))
-        print("Count during loop is {}".format(count))
         count += 1
     return f_of_c
 
@@ -132,11 +129,12 @@ def fx(value_list, n, x):
     count = 0  # keep accurate count of how many variables we are iterating through in the polynomial term list
     for i in range(1, len(value_list)):
         f_of_x += float(value_list[i]) * (math.pow(float(x), float(n) - float(count)))
-        print("Count during loop is {}".format(count))
         count += 1
     return f_of_x
 
 '''Taking the derivative of the function and returning the result'''
+
+
 def derF(value_list, n, x):
     derX = 0
     count = 0
@@ -149,6 +147,7 @@ def derF(value_list, n, x):
         derX += float(n-count) * float(value_list[i]) * (math.pow(float(x), float(n) - 1))
         count += 1
     return derX
+
 
 def bisection(value_list, inp, n, const, init_p, init_p2, max_iter, epsilon):
     init_p = float(init_p)
@@ -199,33 +198,90 @@ def bisection(value_list, inp, n, const, init_p, init_p2, max_iter, epsilon):
 
 
 def newton(value_list, raw_inp, n, const, x, max_iter, epsilon, delta):
+    '''TODO: figure out the exact value of delta, otherwise we will get inaccurate convergence results'''
     f_of_x = fx(value_list, n, x)
     fDer = 0
     print("Max iterations = {}, a = {}, f(x) = {}".format(max_iter, x, f_of_x))
     print("Printing lines from the file in Newton's method: ", value_list)
     for it in range(1, max_iter):
         fDer = derF(value_list, n, x)
+        if math.fabs(fDer) < delta:
+            print("Small slope!")
+            return x
+        d = f_of_x / fDer
+        x -= d
+        f_of_x = fx(value_list, n, x)
+
+        if math.fabs(d) < epsilon:
+            print("Algorithm has converged after {} iterations!".format(it))
+            return x
+
     print("Value of f'(x) = {}".format(fDer))
+    print("Maximum iterations reached without convergence...")
+    return x
 
 
-def secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter):
-    '''TODO: implement logic
+
+def secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter, epsilon):
+    '''
     :param raw_inp
     :param value_list '
     :param: n
     :param: const
     :param init_p
     :param init_p2
-    :param max_iter'''
+    :param max_iter
+    :param epsilon
+    '''
+    f_a = fa(value_list, n, init_p)
+    f_b = fb(value_list, n, init_p2)
+    temp = 0
+    temp_f = 0 #temps which will be used for swapping variables
+    d = 0 #our delta value between points in each iteration. i.e. what x will change by
     print("Max iterations = {}, a = {} and b = {}".format(max_iter, init_p, init_p2))
     print("Printing lines from the file in secant method: ", value_list)
+    for it in range(1, max_iter):
+        if math.fabs(f_a) > math.fabs(f_b):
+            temp = float(init_p) #temp = a(original value)
+            init_p = float(init_p2) #a = b, now replacing original value of a
+            init_p2 = temp #b = a(original value)
+
+            temp_f = f_a #temp = f(a), original value
+            f_a = f_b # f(a) = f(b), replaces original f(a) (which is being held inside of temp)
+            f_b = temp_f # f(b) = f(a), swapping places
+        d = (init_p2 - init_p)/(f_b - f_a)
+        init_p2 = init_p
+        d *= f_a
+
+        if math.fabs(d) < epsilon:
+            print("Algorithm has converged after {} iterations!".format(it))
+            return init_p
+
+        init_p -= d
+        f_a = fa(value_list, n, init_p)
+    print("Maximum number of iterations reached!")
+    return init_p
+
+
+'''
+    :param inp:
+    :param value_list - correctly formatted list
+Hybrid method will run Bisection for 8 iterations and then we will switch to Newton's method until we reach convergence.
+What does this look like? Probably:
+for i in range(9): # ranges are endpoint exclusive
+    Bisection(some initial values)
+    if i = 8:
+        max_iter -=8
+        Newton(some values)
+        break
+        
+    
+    
+'''
 
 
 def hybrid(value_list, inp):
-    '''TODO: implement logic
-    :param inp:
-    :param value_list - correctly formatted list
-    '''
+
     print("hybrid")
 
 
