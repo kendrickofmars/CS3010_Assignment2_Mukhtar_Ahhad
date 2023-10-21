@@ -1,4 +1,4 @@
-import csv
+import os
 import math
 import re
 import itertools
@@ -18,18 +18,18 @@ def file_parser(file, raw_inp):
     const = float(value_list[-1])  # constant term is always the last value of our list
     max_iter = 10000 #default max iteration value if none specified
     epsilon = 2e-23 #error tolerance
-
+    delta = 0 #difference for newton's method
 
     if re.search("-newt", raw_inp[1]):
         if re.search("-maxIter", raw_inp[2]):
             '''If we specify max iterations, our init_p @ index 4'''
             max_iter = float(raw_inp[3])
-            init_p = float(raw_inp[4])  # a
-            newton(value_list, raw_inp, n, const, init_p, max_iter,epsilon)
+            x = float(raw_inp[4])  # a
+            newton(value_list, raw_inp, n, const, x, max_iter, epsilon, delta)
         else:
             '''No "-maxIter" :keyword or :param max_iter? ==> init_p @ index 2'''
-            init_p = float(raw_inp[2])
-            newton(value_list, raw_inp, n, const, init_p, max_iter,epsilon)
+            x = float(raw_inp[2])
+            newton(value_list, raw_inp, n, const, x, max_iter,epsilon, delta)
 
     elif re.search("-sec", raw_inp[1]):
         if re.search("-maxIter", raw_inp[2]):
@@ -105,6 +105,8 @@ def fb(value_list, n, init_p2):
         count += 1
 
     return f_init_p2
+
+
 def fc(value_list, n, c):
     f_of_c = 0
     '''
@@ -122,12 +124,39 @@ def fc(value_list, n, c):
         count += 1
     return f_of_c
 
+def fx(value_list, n, x):
+    f_of_x = 0
+    '''
+    fx solves the polynomial for the given initial zero 
+    '''
+    count = 0  # keep accurate count of how many variables we are iterating through in the polynomial term list
+    for i in range(1, len(value_list)):
+        f_of_x += float(value_list[i]) * (math.pow(float(x), float(n) - float(count)))
+        print("Count during loop is {}".format(count))
+        count += 1
+    return f_of_x
+
+'''Taking the derivative of the function and returning the result'''
+def derF(value_list, n, x):
+    derX = 0
+    count = 0
+    '''For each exponent in our polynomial, we subtract 1.
+    We then multiply:  the coefficient, the value of the exponent-1, our initial zero raised to the power of our exponent -1.
+    This gets us the following:
+        for i in range(1, len(value_list)):
+            derX += float(n-count) * float(value_list[i]) * (math.pow(float(x), float(n) - 1)) '''
+    for i in range(1, len(value_list)):
+        derX += float(n-count) * float(value_list[i]) * (math.pow(float(x), float(n) - 1))
+        count += 1
+    return derX
+
 def bisection(value_list, inp, n, const, init_p, init_p2, max_iter, epsilon):
     init_p = float(init_p)
     init_p2 = float(init_p2)
     f_init_p = fa(value_list, n, init_p)
     f_init_p2 = fb(value_list, n, init_p2)
     c = 0
+
     '''In Bisection, we have 2 initial points, a and b. init_p and init_p2 hold the starting values in the input string that 
         the user sends in. They are our starting values which we will find a zero between. 
         We will plug these into our function, so we can find the difference between f(a) and f(b)'''
@@ -157,18 +186,26 @@ def bisection(value_list, inp, n, const, init_p, init_p2, max_iter, epsilon):
     return c
 
     # print("f(init_p) = {}".format(f_init_p))
-    # print("f(init_p2) = {}".format(f_init_p2))
-def newton(value_list, raw_inp, n, const, init_p, max_iter, epsilon):
-    '''TODO: implement logic
-    :param raw_inp
+    # print("f(init_p2) = {}".format(f_init_p2))\
+
+
+''' :param raw_inp
     :param value_list '
     :param: n
     :param: const
     :param init_p
     :param max_iter
     :param epsilon'''
-    print("Max iterations = {}, a = {}".format(max_iter, init_p))
+
+
+def newton(value_list, raw_inp, n, const, x, max_iter, epsilon, delta):
+    f_of_x = fx(value_list, n, x)
+    fDer = 0
+    print("Max iterations = {}, a = {}, f(x) = {}".format(max_iter, x, f_of_x))
     print("Printing lines from the file in Newton's method: ", value_list)
+    for it in range(1, max_iter):
+        fDer = derF(value_list, n, x)
+    print("Value of f'(x) = {}".format(fDer))
 
 
 def secant(value_list, raw_inp, n, const, init_p, init_p2, max_iter):
