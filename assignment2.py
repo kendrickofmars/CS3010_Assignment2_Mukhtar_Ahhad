@@ -79,13 +79,15 @@ def file_parser(file, raw_inp):
 
 def solutionWriter(outcome_text):
     solution_file_path = "C://AlgSolutions//sol.txt"
-    try:
-        os.mkdir(os.path.dirname(solution_file_path))
+    #testing if path already exists, if not create it with try-except block
+    if not os.path.exists(solution_file_path):
+        try:
+            os.mkdir(os.path.dirname(solution_file_path))
 
-    except FileExistsError as err:
-        print(err)
-    with open(solution_file_path, "w") as f_write:
-        f_write.write(outcome_text)
+        except FileExistsError as err:
+            print(err)
+        with open(solution_file_path, "w") as f_write:
+            f_write.write(outcome_text)
 
 
 '''Input is organized in the following manner:
@@ -239,12 +241,12 @@ def newton(value_list, n,  x, max_iter, epsilon, delta):
 
         if math.fabs(d) < epsilon:
             print("Algorithm has converged after {} iterations!".format(it))
-            # solutionWriter("Newton's method. root = {}, no. iterations: {}, outcome: Convergence".format(x, it))
+            solutionWriter("Newton's method. root = {}, no. iterations: {}, outcome: Convergence".format(x, it))
             return x
 
     print("Value of f'(x) = {}".format(fDer))
     print("Maximum iterations reached without convergence...")
-    # solutionWriter("Newton's method. root = {}, no. iterations: {}, outcome: Convergence not reached".format("N/A", max_iter))
+    solutionWriter("Newton's method. root = {}, no. iterations: {}, outcome: Convergence not reached".format("N/A", max_iter))
     return x
 
 
